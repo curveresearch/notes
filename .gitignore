@@ -1,0 +1,9 @@
+# LaTeX
+*.log
+*.aux
+*.synctex.gz
+
+# vim
+*.swp
+*.swo
+
