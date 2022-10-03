@@ -20,3 +20,10 @@ tex:
 pdf: tex
 	pdflatex $(name).tex
 
+.PHONY: build
+build:
+	docker build . -t latex_docker
+
+.PHONY: bash
+bash:
+	docker run -it -v ${PWD}:/app latex_docker bash
