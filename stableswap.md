@@ -132,6 +132,89 @@ x_j &:= x_j - \frac{x_j^2 + bx_j - c}{2x_j + b}\\
 Note the actual vyper code cleverly defines $b$ as our $b$ without the $-D$ term.  This allows $b$ to be defined as a `uint256` since otherwise it could be negative (although of course $2x_j + b$ is always positive).
 
 
+The vyper code should be understandable now:
+```vyper
+@view
+@internal
+def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
+    # x in the input is converted to the same price/precision
+
+    assert i != j       # dev: same coin
+    assert j >= 0       # dev: j below zero
+    assert j < N_COINS  # dev: j above N_COINS
+
+    # should be unreachable, but good for safety
+    assert i >= 0
+    assert i < N_COINS
+
+    amp: uint256 = self._A()
+    D: uint256 = self.get_D(xp_, amp)
+    c: uint256 = D
+    S_: uint256 = 0
+    Ann: uint256 = amp * N_COINS
+
+    _x: uint256 = 0
+    for _i in range(N_COINS):
+        if _i == i:
+            _x = x
+        elif _i != j:
+            _x = xp_[_i]
+        else:
+            continue
+        S_ += _x
+        c = c * D / (_x * N_COINS)
+    c = c * D / (Ann * N_COINS)
+    b: uint256 = S_ + D / Ann  # - D
+    y_prev: uint256 = 0
+    y: uint256 = D
+    for _i in range(255):
+        y_prev = y
+        y = (y*y + c) / (2 * y + b - D)
+        # Equality with the precision of 1
+        if y > y_prev:
+            if y - y_prev <= 1:
+                break
+        else:
+            if y_prev - y <= 1:
+                break
+    return y
+```
+
+So given all the normalized balances (the out-token balance doesn't matter), we can compute the balance of the
+out-token that satisfies the stableswap equation for the given $D$ and other balances.  
+
+This is what's done in the `get_dy` function in the stableswap contract:
+```vyper
+@view
+@external
+def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
+    # dx and dy in c-units
+    rates: uint256[N_COINS] = RATES
+    xp: uint256[N_COINS] = self._xp()
+
+    x: uint256 = xp[i] + (dx * rates[i] / PRECISION)
+    y: uint256 = self.get_y(i, j, x, xp)
+    dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
+    _fee: uint256 = self.fee * dy / FEE_DENOMINATOR
+    return dy - _fee
+```
+
+The key logic is given in the lines:
+```vyper
+y: uint256 = self.get_y(i, j, x, xp)
+dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
+```
+
+As usual the `xp` balances are the virtual balances, the token balances normalized to be in the same units as
+`D` with any rate adjustment to compensate for changes in value, e.g. accrued interest.
+
+So by using `get_y` on the in-token balance increased by the swap amount `dx`, we can get the new out-token balance and subtract from the old out-token balances, which gives us `dy`.  This then gets adjusted to native token
+units with the fee taken out.
+
+The `get_dy` isn't actually what's used to do the exchange, but the `exchange` function does the identical logic while handling token transfers and other fee logic, particularly sweeping "admin fees", which are the fees going
+to the DAO.  In any case, the amount `dy` is the same.
+
+
 ## Fees
 
 ### Exchange
