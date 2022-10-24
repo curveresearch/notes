@@ -2,6 +2,7 @@
 *.log
 *.aux
 *.synctex.gz
+*.out
 
 # vim
 *.swp
