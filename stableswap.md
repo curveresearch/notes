@@ -231,6 +231,37 @@ The other case is when liquidity is added to the pool (if liquidity is removed i
 
 ### Price
 
+Use the auxiliary function:
+
+$$ f(x_1, x_2, ..., x_n, D) = A n \sum_i x_i + D - A n D - \frac{D^{n+1}}{n^n \prod_i x_i} $$
+
+When $f(x_1, ..., x_n, D) = 0$, we have the stableswap equation.  We will be supposing $D$ fixed in what follows, so you can consider $f$ to be a function of just the $x_i$'s.
+
+Computing the partials of $f$, we get:
+
+$$\begin{aligned}
+\frac{\partial f}{\partial x_k} &= A n - \frac{\partial}{\partial x_k}\left(\frac{D^{n+1}}{n^n \prod x_i}\right) \\
+&= A n -  \frac{\partial}{\partial x_k}\left(\frac{D^{n+1}}{n^n \prod_{i\neq k} x_i} \cdot \frac{1}{x_k}\right)\\
+&= A n + \frac{D^{n+1}}{n^n \prod_{i\neq k} x_i} \cdot \frac{1}{x_k^2} \\
+&= A n + \frac{D^{n+1}}{n^n \prod_{i} x_i} \cdot \frac{1}{x_k} \\
+\end{aligned}$$
+
+When restricting $f$ to the level set given by $f(x_1, ..., x_n) = 0$, we must have $\frac{\partial f}{\partial x_i} dx_i + \frac{\partial f}{\partial x_j} dx_j = 0$.
+
+Now the price is
+
+$$\begin{aligned}
+- \frac{\partial x_j}{\partial x_i} &= \frac{\frac{\partial f}{\partial x_i}}{\frac{\partial f}{\partial x_j}}\\[1.2ex]
+&= \frac{A n + \frac{D^{n+1}}{n^n \prod_{k} x_k} \cdot \frac{1}{x_i}}{A n + \frac{D^{n+1}}{n^n \prod_{k} x_k} \cdot \frac{1}{x_j}} \\[1.2ex]
+&= \left( \frac{x_j}{x_i} \right) \frac{\left(A n x_i + \frac{D^{n+1}}{n^n \prod_{k} x_k}\right)}{\left(A n x_j + \frac{D^{n+1}}{n^n \prod_{k} x_k}\right)} \\[1.0ex]
+&= \left( \frac{x_j}{x_i} \right) \frac{\left(\frac{A n^{n+1} x_i \prod_k x_k}{D^{n+1}} + 1 \right)}{\left(\frac{A n^{n+1} x_j \prod_k x_k}{D^{n+1}} + 1 \right)} \\[1.0ex]
+\end{aligned}$$
+
+Some sanity checks:
+
+- when $A$ is 0, the price is $\frac{x_j}{x_i}$, the price for a constant product AMM.
+- when $A \rightarrow \infty$, price is 1, the price for a constant sum AMM.
+- when $x_j = x_i$, price is 1.
 
 ### Slippage
 
