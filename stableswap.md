@@ -1,13 +1,13 @@
 # Curve Stableswap: From Whitepaper To Vyper
 
 The stableswap invariant was derived by Michael Egorov and promulgated in the [whitepaper](https://curve.fi/files/stableswap-paper.pdf), "StableSwap - efficient mechanism for Stablecoin
-liquidity".  The whitepaper clearly explained the invariant and its implications for DeFi; however, there are differences with how it is implemented in practice, currently across dozens of live contracts across Ethereum and other layer 2s and chains.
+liquidity".  The whitepaper clearly explained the invariant and its implications for DeFi; however, there are differences with how it is implemented in practice, currently across hundreds of live contracts across Ethereum and other layer 2s and chains.
 
-In particular, implementation of fees, both for exchanges and adding/removing liquidity, is not explained in the whitepaper.  Also, the actual solution procedure for the invariant, particularly in integer arithmetic, is not given.
+Particularly important details for the practitioner but not given in the whitepaper are: 1) implementation of fees, both for exchanges and adding liquidity, 2) the practical solution procedures for the invariant and related quantities in integer arithmetic.
 
 The practitioner seeking to understand the live functionality of the stableswap pools must look toward the vyper code for help, which while very readable, has minimal comments and explanation (indeed some comments are even wrong!).  To understand the vyper code, the reader must have a solid grasp of the whitepaper in order to translate to the appropriate variables and understand various tweaks needed for implementation.
 
-This note seeks to close the gap between the whitepaper and the vyper contracts.  It seeks to give a consistent derivation of the necessary mathematics, using the notation and language of the contracts.
+This note seeks to close the gap between the whitepaper and the vyper contracts.  It seeks to give a consistent derivation of the necessary mathematics, using the notation and language of the contracts.  At the same time, it points out and explains the "grungy" changes to calculations needed to ensure secure and safe operation on the Ethereum Virtual Machine.
 
 ## Preliminaries (notation and conventions)
 
