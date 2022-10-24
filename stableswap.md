@@ -180,8 +180,7 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
     return y
 ```
 
-So given all the normalized balances (the out-token balance doesn't matter), we can compute the balance of the
-out-token that satisfies the stableswap equation for the given $D$ and other balances.  
+So given all the normalized balances (the out-token balance doesn't matter), we can compute the balance of the out-token that satisfies the stableswap equation for the given $D$ and other balances.
 
 This is what's done in the `get_dy` function in the stableswap contract:
 ```vyper
@@ -205,21 +204,15 @@ y: uint256 = self.get_y(i, j, x, xp)
 dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
 ```
 
-As usual the `xp` balances are the virtual balances, the token balances normalized to be in the same units as
-`D` with any rate adjustment to compensate for changes in value, e.g. accrued interest.
+As usual the `xp` balances are the virtual balances, the token balances normalized to be in the same units as `D` with any rate adjustment to compensate for changes in value, e.g. accrued interest.
 
-So by using `get_y` on the in-token balance increased by the swap amount `dx`, we can get the new out-token balance and subtract from the old out-token balances, which gives us `dy`.  This then gets adjusted to native token
-units with the fee taken out.
+So by using `get_y` on the in-token balance increased by the swap amount `dx`, we can get the new out-token balance and subtract from the old out-token balances, which gives us `dy`.  This then gets adjusted to native token units with the fee taken out.
 
-The `get_dy` isn't actually what's used to do the exchange, but the `exchange` function does the identical logic while handling token transfers and other fee logic, particularly sweeping "admin fees", which are the fees going
-to the DAO.  In any case, the amount `dy` is the same.
+The `get_dy` isn't actually what's used to do the exchange, but the `exchange` function does the identical logic while handling token transfers and other fee logic, particularly sweeping "admin fees", which are the fees going to the DAO.  In any case, the amount `dy` is the same.
 
 
 ## Fees
-Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the
-stableswap invariant (the invariant increases when a coin balance increases, as can be checked
-using the usual calculus).  This effectively increases the balances for LPs when they redeem
-their LP tokens.
+Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the stableswap invariant (the invariant increases when a coin balance increases, as can be checked using the usual calculus).  This effectively increases the balances for LPs when they redeem their LP tokens.
 
 The other case is when liquidity is added to the pool (if liquidity is removed in an imbalanced way, fees also apply in that case).  When adding liquidity, swap fees are deducted for coin amounts that differ from the "ideal" balance (same proportions as the pool).  The reduced input amounts are then used to mint LP tokens.
 
