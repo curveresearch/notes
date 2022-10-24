@@ -57,13 +57,13 @@ in the \href{https://curve.fi/files/stableswap-paper.pdf}{whitepaper},
 ``StableSwap - efficient mechanism for Stablecoin liquidity''. The
 whitepaper clearly explained the invariant and its implications for
 DeFi; however, there are differences with how it is implemented in
-practice, currently across dozens of live contracts across Ethereum and
-other layer 2s and chains.
+practice, currently across hundreds of live contracts across Ethereum
+and other layer 2s and chains.
 
-In particular, implementation of fees, both for exchanges and
-adding/removing liquidity, is not explained in the whitepaper. Also, the
-actual solution procedure for the invariant, particularly in integer
-arithmetic, is not given.
+Particularly important details for the practitioner but not given in the
+whitepaper are: 1) implementation of fees, both for exchanges and adding
+liquidity, 2) the practical solution procedures for the invariant and
+related quantities in integer arithmetic.
 
 The practitioner seeking to understand the live functionality of the
 stableswap pools must look toward the vyper code for help, which while
@@ -75,7 +75,10 @@ implementation.
 
 This note seeks to close the gap between the whitepaper and the vyper
 contracts. It seeks to give a consistent derivation of the necessary
-mathematics, using the notation and language of the contracts.
+mathematics, using the notation and language of the contracts. At the
+same time, it points out and explains the ``grungy'' changes to
+calculations needed to ensure secure and safe operation on the Ethereum
+Virtual Machine.
 
 \hypertarget{preliminaries-notation-and-conventions}{%
 \subsection{Preliminaries (notation and
@@ -256,8 +259,114 @@ the \(-D\) term. This allows \(b\) to be defined as a \texttt{uint256}
 since otherwise it could be negative (although of course \(2x_j + b\) is
 always positive).
 
+The vyper code should be understandable now:
+
+\begin{verbatim}
+@view
+@internal
+def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
+    # x in the input is converted to the same price/precision
+
+    assert i != j       # dev: same coin
+    assert j >= 0       # dev: j below zero
+    assert j < N_COINS  # dev: j above N_COINS
+
+    # should be unreachable, but good for safety
+    assert i >= 0
+    assert i < N_COINS
+
+    amp: uint256 = self._A()
+    D: uint256 = self.get_D(xp_, amp)
+    c: uint256 = D
+    S_: uint256 = 0
+    Ann: uint256 = amp * N_COINS
+
+    _x: uint256 = 0
+    for _i in range(N_COINS):
+        if _i == i:
+            _x = x
+        elif _i != j:
+            _x = xp_[_i]
+        else:
+            continue
+        S_ += _x
+        c = c * D / (_x * N_COINS)
+    c = c * D / (Ann * N_COINS)
+    b: uint256 = S_ + D / Ann  # - D
+    y_prev: uint256 = 0
+    y: uint256 = D
+    for _i in range(255):
+        y_prev = y
+        y = (y*y + c) / (2 * y + b - D)
+        # Equality with the precision of 1
+        if y > y_prev:
+            if y - y_prev <= 1:
+                break
+        else:
+            if y_prev - y <= 1:
+                break
+    return y
+\end{verbatim}
+
+So given all the normalized balances (the out-token balance doesn't
+matter), we can compute the balance of the out-token that satisfies the
+stableswap equation for the given \(D\) and other balances.
+
+This is what's done in the \texttt{get\_dy} function in the stableswap
+contract:
+
+\begin{verbatim}
+@view
+@external
+def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
+    # dx and dy in c-units
+    rates: uint256[N_COINS] = RATES
+    xp: uint256[N_COINS] = self._xp()
+
+    x: uint256 = xp[i] + (dx * rates[i] / PRECISION)
+    y: uint256 = self.get_y(i, j, x, xp)
+    dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
+    _fee: uint256 = self.fee * dy / FEE_DENOMINATOR
+    return dy - _fee
+\end{verbatim}
+
+The key logic is given in the lines:
+
+\begin{verbatim}
+y: uint256 = self.get_y(i, j, x, xp)
+dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
+\end{verbatim}
+
+As usual the \texttt{xp} balances are the virtual balances, the token
+balances normalized to be in the same units as \texttt{D} with any rate
+adjustment to compensate for changes in value, e.g.~accrued interest.
+
+So by using \texttt{get\_y} on the in-token balance increased by the
+swap amount \texttt{dx}, we can get the new out-token balance and
+subtract from the old out-token balances, which gives us \texttt{dy}.
+This then gets adjusted to native token units with the fee taken out.
+
+The \texttt{get\_dy} isn't actually what's used to do the exchange, but
+the \texttt{exchange} function does the identical logic while handling
+token transfers and other fee logic, particularly sweeping ``admin
+fees'', which are the fees going to the DAO. In any case, the amount
+\texttt{dy} is the same.
+
 \hypertarget{fees}{%
 \subsection{Fees}\label{fees}}
+
+Fees enter into the picture in a couple different ways. During an
+exchange, the out-token amount received by the user is reduced. This is
+added back to the pool, which increases the stableswap invariant (the
+invariant increases when a coin balance increases, as can be checked
+using the usual calculus). This effectively increases the balances for
+LPs when they redeem their LP tokens.
+
+The other case is when liquidity is added to the pool (if liquidity is
+removed in an imbalanced way, fees also apply in that case). When adding
+liquidity, swap fees are deducted for coin amounts that differ from the
+``ideal'' balance (same proportions as the pool). The reduced input
+amounts are then used to mint LP tokens.
 
 \hypertarget{exchange}{%
 \subsubsection{Exchange}\label{exchange}}
