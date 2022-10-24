@@ -216,8 +216,15 @@ to the DAO.  In any case, the amount `dy` is the same.
 
 
 ## Fees
+Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the
+stableswap invariant (the invariant increases when a coin balance increases, as can be checked
+using the usual calculus).  This effectively increases the balances for LPs when they redeem
+their LP tokens.
+
+The other case is when liquidity is added to the pool (if liquidity is removed in an imbalanced way, fees also apply in that case).  When adding liquidity, swap fees are deducted for coin amounts that differ from the "ideal" balance (same proportions as the pool).  The reduced input amounts are then used to mint LP tokens.
 
 ### Exchange
+
 
 ### Adding and removing liquidity
 
@@ -225,9 +232,12 @@ to the DAO.  In any case, the amount `dy` is the same.
 
 #### Removing one coin
 
+
 ## Useful formulas
 
+
 ### Price
+
 
 ### Slippage
 
