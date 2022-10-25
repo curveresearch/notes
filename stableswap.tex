@@ -36,6 +36,8 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \hypersetup{
+  pdftitle={Curve Stableswap: From Whitepaper to Vyper},
+  pdfauthor={Curve Research},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
@@ -44,13 +46,15 @@
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 
-\date{}
+\title{Curve Stableswap: From Whitepaper to Vyper}
+\author{Curve Research}
+\date{\today}
 
 \begin{document}
+\maketitle
 
-\hypertarget{curve-stableswap-from-whitepaper-to-vyper}{%
-\section{Curve Stableswap: From Whitepaper To
-Vyper}\label{curve-stableswap-from-whitepaper-to-vyper}}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
 
 The stableswap invariant was derived by Michael Egorov and promulgated
 in the \href{https://curve.fi/files/stableswap-paper.pdf}{whitepaper},
@@ -81,11 +85,11 @@ calculations needed to ensure secure and safe operation on the Ethereum
 Virtual Machine.
 
 \hypertarget{preliminaries-notation-and-conventions}{%
-\subsection{Preliminaries (notation and
+\section{Preliminaries (notation and
 conventions)}\label{preliminaries-notation-and-conventions}}
 
 \hypertarget{stableswap-equation}{%
-\subsubsection{Stableswap equation}\label{stableswap-equation}}
+\subsection{Stableswap equation}\label{stableswap-equation}}
 
 This is the original stableswap equation:
 \[ A \cdot n^n  \sum_i x_i + D = A \cdot n^n \cdot D + \frac{D^{n+1}}{n^n \prod_i x_i}\]
@@ -98,7 +102,7 @@ In the vyper code, the amplification constant \(A\) actually refers to
 This is the form we use for all our derivations.
 
 \hypertarget{coin-balances}{%
-\subsubsection{Coin balances}\label{coin-balances}}
+\subsection{Coin balances}\label{coin-balances}}
 
 We denote the coin balances (as in the contracts) with \(x_i\), \(x_j\)
 etc. In the context of a swap, \(i\) is the ``in'' index and \(j\) is
@@ -126,7 +130,7 @@ accrued yield. This is done by multiplying the amount by the basepool
 virtual price.
 
 \hypertarget{solving-for-d}{%
-\subsection{\texorpdfstring{Solving for
+\section{\texorpdfstring{Solving for
 \(D\)}{Solving for D}}\label{solving-for-d}}
 
 Since the arithmetic mean is greater than the geometric mean (unless the
@@ -150,7 +154,7 @@ strictly increasing and there is a unique \(D\) that solves
 \(f(D) = 0\).
 
 \hypertarget{newtons-method}{%
-\subsubsection{Newton's method}\label{newtons-method}}
+\subsection{Newton's method}\label{newtons-method}}
 
 The stableswap contracts utilize Newton's method to solve for \(D\). It
 is easy to check \(f'' > 0\), i.e.~\(f\) is convex. An elementary
@@ -204,7 +208,7 @@ where \(S = \sum_i x_i\) and
 \(D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}\)
 
 \hypertarget{quadratic-convergence}{%
-\paragraph{Quadratic convergence}\label{quadratic-convergence}}
+\subsubsection{Quadratic convergence}\label{quadratic-convergence}}
 
 Convergence is easily argued based on convexity of \(f\). However we
 need much better than that, we need at least linear convergence,
@@ -213,10 +217,10 @@ more than half a dozen iterations is not sufficiently gas efficient
 enough to be competitive.
 
 \hypertarget{integer-arithmetic}{%
-\subsubsection{Integer arithmetic}\label{integer-arithmetic}}
+\subsection{Integer arithmetic}\label{integer-arithmetic}}
 
 \hypertarget{the-swap-equation}{%
-\subsection{The swap equation}\label{the-swap-equation}}
+\section{The swap equation}\label{the-swap-equation}}
 
 The stableswap equation allows you to solve for any coin balance given
 the other balances and the value of \(D\). This is a fundamental
@@ -353,7 +357,7 @@ fees'', which are the fees going to the DAO. In any case, the amount
 \texttt{dy} is the same.
 
 \hypertarget{fees}{%
-\subsection{Fees}\label{fees}}
+\section{Fees}\label{fees}}
 
 Fees enter into the picture in a couple different ways. During an
 exchange, the out-token amount received by the user is reduced. This is
@@ -369,24 +373,24 @@ liquidity, swap fees are deducted for coin amounts that differ from the
 amounts are then used to mint LP tokens.
 
 \hypertarget{exchange}{%
-\subsubsection{Exchange}\label{exchange}}
+\subsection{Exchange}\label{exchange}}
 
 \hypertarget{adding-and-removing-liquidity}{%
-\subsubsection{Adding and removing
+\subsection{Adding and removing
 liquidity}\label{adding-and-removing-liquidity}}
 
 \hypertarget{balanced-deposits-and-withdrawals}{%
-\paragraph{Balanced deposits and
+\subsubsection{Balanced deposits and
 withdrawals}\label{balanced-deposits-and-withdrawals}}
 
 \hypertarget{removing-one-coin}{%
-\paragraph{Removing one coin}\label{removing-one-coin}}
+\subsubsection{Removing one coin}\label{removing-one-coin}}
 
 \hypertarget{useful-formulas}{%
-\subsection{Useful formulas}\label{useful-formulas}}
+\section{Useful formulas}\label{useful-formulas}}
 
 \hypertarget{price}{%
-\subsubsection{Price}\label{price}}
+\subsection{Price}\label{price}}
 
 Use the auxiliary function:
 
@@ -433,9 +437,12 @@ Some sanity checks:
 \end{itemize}
 
 \hypertarget{slippage}{%
-\subsubsection{Slippage}\label{slippage}}
+\subsection{Slippage}\label{slippage}}
 
 \hypertarget{depth}{%
-\subsubsection{Depth}\label{depth}}
+\subsection{Depth}\label{depth}}
+
+https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
+https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
 
 \end{document}
