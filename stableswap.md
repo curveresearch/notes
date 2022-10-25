@@ -1,4 +1,12 @@
-# Curve Stableswap: From Whitepaper To Vyper
+---
+title: "Curve Stableswap: From Whitepaper to Vyper"
+author: Curve Research
+email: info@curveresearch.org
+date: \today
+---
+
+
+# Introduction
 
 The stableswap invariant was derived by Michael Egorov and promulgated in the [whitepaper](https://curve.fi/files/stableswap-paper.pdf), "StableSwap - efficient mechanism for Stablecoin
 liquidity".  The whitepaper clearly explained the invariant and its implications for DeFi; however, there are differences with how it is implemented in practice, currently across hundreds of live contracts across Ethereum and other layer 2s and chains.
@@ -9,9 +17,9 @@ The practitioner seeking to understand the live functionality of the stableswap 
 
 This note seeks to close the gap between the whitepaper and the vyper contracts.  It seeks to give a consistent derivation of the necessary mathematics, using the notation and language of the contracts.  At the same time, it points out and explains the "grungy" changes to calculations needed to ensure secure and safe operation on the Ethereum Virtual Machine.
 
-## Preliminaries (notation and conventions)
+# Preliminaries (notation and conventions)
 
-### Stableswap equation
+## Stableswap equation
 This is the original stableswap equation:
 $$ A \cdot n^n  \sum_i x_i + D = A \cdot n^n \cdot D + \frac{D^{n+1}}{n^n \prod_i x_i}$$
 
@@ -21,7 +29,7 @@ $$ A \cdot n  \sum_i x_i + D = A \cdot n \cdot D + \frac{D^{n+1}}{n^n \prod_i x_
 
 This is the form we use for all our derivations.
 
-### Coin balances
+## Coin balances
 We denote the coin balances (as in the contracts) with $x_i$, $x_j$ etc.  In the context of a swap, $i$ is the "in" index and $j$ is the "out" index.
 
 The quantities though are in special units.  They are *not* native token units.  For example, if $x_i$ represents the USDC amount, one whole token amount would not be $1000000$ as might be assumed from the 6 decimals for USDC.  Instead $x_i$ would be $1000000000000000000$ (18 zeroes).  All the $x$ balances should be assumed to be in the same units as $D$.  For lack of a better term, sometimes we will call these *virtual* units (as the amount of $D$ per LP token is often referred to as "virtual price") and we will call the $x$ balances *virtual balances*.
@@ -29,7 +37,7 @@ The quantities though are in special units.  They are *not* native token units. 
 While putting balances into virtual units often involves only a change of decimals, this is not the correct way of thinking about the process.  The stableswap equation assumes a 1:1 peg between coins.  This means the balances being used must reflect the proper value in the common units of D being used.  For the example of USDC, this means adjusting simply the decimals.  For a rebasing token however, it may not be.  Indeed, for metapools, when exchange the basepool's tokens for the main stable, the basepool token conversion into D units must take into account the accrued yield.  This is done by multiplying the amount by the basepool virtual price.
 
 
-## Solving for $D$
+# Solving for $D$
 Since the arithmetic mean is greater than the geometric mean (unless the balances $x_i$ are equal, in which case the means are identical), the form of the equation suggests that there ought to be a $D$ in-between the means that satisfies the equation.
 
 To see this rigorously, we use the auxiliary function:
@@ -42,7 +50,7 @@ $$ f'(D) = A\cdot n + (n+1) \frac{D^n}{n^n \prod_i x_i} - 1 $$
 
 the derivative of $f$, is positive (assuming $A >= 1$), so $f$ is strictly increasing and there is a unique $D$ that solves $f(D) = 0$.
 
-### Newton's method
+## Newton's method
 The stableswap contracts utilize Newton's method to solve for $D$.  It is easy to check $f'' > 0$, i.e. $f$ is convex.  An elementary argument shows that this guarantees convergence of Newton's method starting with initial point $S$ to the solution.
 
 The vyper code (from 3Pool) is:
@@ -88,16 +96,16 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 
 where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$
 
-#### Quadratic convergence
+### Quadratic convergence
 Convergence is easily argued based on convexity of $f$.  However we need much better than that, we need at least linear convergence, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.
 
 
 
 
-### Integer arithmetic
+## Integer arithmetic
 
 
-## The swap equation
+# The swap equation
 The stableswap equation allows you to solve for any coin balance given the other balances and the value of $D$.  This is a fundamental property needed for enabling swap functionality.  Since this is not derived in the whitepaper, we go through it here.
 
 The stableswap equation can be re-written in the form:
@@ -211,25 +219,25 @@ So by using `get_y` on the in-token balance increased by the swap amount `dx`, w
 The `get_dy` isn't actually what's used to do the exchange, but the `exchange` function does the identical logic while handling token transfers and other fee logic, particularly sweeping "admin fees", which are the fees going to the DAO.  In any case, the amount `dy` is the same.
 
 
-## Fees
+# Fees
 Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the stableswap invariant (the invariant increases when a coin balance increases, as can be checked using the usual calculus).  This effectively increases the balances for LPs when they redeem their LP tokens.
 
 The other case is when liquidity is added to the pool (if liquidity is removed in an imbalanced way, fees also apply in that case).  When adding liquidity, swap fees are deducted for coin amounts that differ from the "ideal" balance (same proportions as the pool).  The reduced input amounts are then used to mint LP tokens.
 
-### Exchange
+## Exchange
 
 
-### Adding and removing liquidity
+## Adding and removing liquidity
 
-#### Balanced deposits and withdrawals
+### Balanced deposits and withdrawals
 
-#### Removing one coin
-
-
-## Useful formulas
+### Removing one coin
 
 
-### Price
+# Useful formulas
+
+
+## Price
 
 Use the auxiliary function:
 
@@ -263,6 +271,10 @@ Some sanity checks:
 - when $A \rightarrow \infty$, price is 1, the price for a constant sum AMM.
 - when $x_j = x_i$, price is 1.
 
-### Slippage
+## Slippage
 
-### Depth
+## Depth
+
+
+https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
+https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
