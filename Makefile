@@ -12,10 +12,16 @@ help:
 	@echo "bash      	start bash shell in Docker container"
 	@echo ""
 
+# example (for stableswap.md):
+#
+# make tex name=stableswap
 .PHONY: tex
 tex:
 	pandoc --from=markdown --output=$(name).tex $(name).md --to=latex --standalone
 
+# example (for stableswap.md):
+#
+# make pdf name=stableswap
 .PHONY: pdf
 pdf: tex
 	pdflatex $(name).tex
