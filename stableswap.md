@@ -3,6 +3,9 @@ title: "Curve Stableswap: From Whitepaper to Vyper"
 author: Curve Research
 email: info@curveresearch.org
 date: \today
+header-includes: |
+    \usepackage{draftwatermark}
+    \SetWatermarkLightness{0.95}
 ---
 
 
