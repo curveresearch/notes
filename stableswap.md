@@ -1,6 +1,6 @@
 ---
 title: "Curve Stableswap: From Whitepaper to Vyper"
-author: Curve Research
+author: Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Curve Research, Curve DAO, and Curve Finance are not responsible for any damages that result from use of the provided information, regardless of its accuracy.}
 email: info@curveresearch.org
 date: \today
 header-includes: |
