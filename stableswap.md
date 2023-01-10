@@ -1,6 +1,6 @@
 ---
 title: "Curve Stableswap: From Whitepaper to Vyper"
-author: Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Curve Research, Curve DAO, and Curve Finance are not responsible for any damages that result from use of the provided information, regardless of its accuracy.}
+author: Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}
 email: info@curveresearch.org
 date: \today
 header-includes: |
@@ -86,7 +86,7 @@ def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
     return D
 ```
 
-This code is used with minimal difference between all the stableswap contracts.  Later versions choose to revert if the 255 iterations are exhausted before converging.
+This code is used with minimal difference between all the stableswap contracts.  For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
 
 The iterative formula is easily derived:
 $$\begin{aligned}
