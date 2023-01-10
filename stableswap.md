@@ -276,9 +276,28 @@ Some sanity checks:
 - when $A \rightarrow \infty$, price is 1, the price for a constant sum AMM.
 - when $x_j = x_i$, price is 1.
 
+
+## Impermanent Loss
+A liquidity provider (LP) for a pool will experience adverse selection from informed traders re-balancing the pool to reflect changes to prices from external markets.  More precisely, consider an arbitrageur who profits from differences in pricing between the pool and an external reference price, e.g. price on a centralized exchange.
+
+When the external price is higher than the pool's price, the arbitrageur will buy the coin until the pool's price increases to reflect the external price and then sell on the other venue to lock-in profit.  This means the pool is selling as the price rises in the pool and the resulting pool total value will have less of the more expensive coin and more of the cheaper coin.  Similar considerations hold when the external price is lower, so we conclude that the pool total value always decreases after such an arbitrage trade versus a portfolio that held the original pool balances before the trade.
+
+This loss is a lower bound on opportunity cost and has been termed *impermanent loss* (sometimes called "divergence loss").  The term "impermanent" is used because for stablecoin pools, it is assumed the peg will be restored and the loss erased; however, it is important to consider that a stablecoin pool can be imbalanced severely for long periods of time.  This increases the opportunity cost as an LP will suffer losses upon withdrawing capital to allocate to other strategies.
+
+It is precisely for this reason that LPs must receive incentives such as fees.  On Curve, LPs often receive a combination of fees and CRV emissions, and/or 3rd party tokens.
+
+In traditional finance, the phenomenon of impermanent loss is widely understood as a manifestation of negative convexity, often arising from holding options with short gamma exposures, e.g. a seller of call or put options is short gamma and must
+charge sufficient premium to cover the cost of hedging.
+
+
+
+ 
+
 ## Slippage
 
 ## Depth
+
+
 
 
 https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
