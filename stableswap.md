@@ -221,6 +221,8 @@ So by using `get_y` on the in-token balance increased by the swap amount `dx`, w
 
 The `get_dy` isn't actually what's used to do the exchange, but the `exchange` function does the identical logic while handling token transfers and other fee logic, particularly sweeping "admin fees", which are the fees going to the DAO.  In any case, the amount `dy` is the same.
 
+Note that an extra "wei" is subtracted in `xp[j] - y - 1`.  This is because `y` might be truncated due to the integer division, effectively rounding down.  So we compensate by increasing `y` by 1.  Defending against value leakage like this protects the pool from attackers potentially draining the pool, although it may very slightly penalize the user in some cases.
+
 
 # Fees
 Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the stableswap invariant (the invariant increases when a coin balance increases, as can be checked using the usual calculus).  This effectively increases the balances for LPs when they redeem their LP tokens.
