@@ -118,10 +118,25 @@ With $A >= 1$, $f' > 0$ and $f'' > 0$ everywhere, and in particular on $[P, S]$ 
 
 The formula for Newton's method is:
 
-$$ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} $$
+$$ d_{k+1} = d_k - \frac{f(d_k)}{f'(d_k)} $$
 
 Since $f$ is convex, its graph lies about every tangent line and in particular, for every iteration of Newton's method, $f(d_{k+1}) > 0$ (since the tangent line approximation intersects the $y$-axis at $d_{k+1}$).  Since $f'(d_k) > 0$ also, we see that $d_{k+a}$ is always to the left of $d_k$.  The solution $D$ we are seeking is always to the left of any iterate (because $f(D) = 0$ while $f(d_k) > 0$) so the sequence $d_k$ converges to $c$.  We claim $f(c) = 0$.  This can be seen from the iterative formula.  Since $d_{k} - d_{k+1}$ get arbitrarily small, $\frac{f(d_k)}{f'(d_k)}$ gets arbitrarily small.  But the denominator $f'(d_k)$ has a max on $[c, S]$ so the numerator must be getting arbitrarily small, i.e. $f(d_k) \rightarrow 0$, which implies $f(c) = 0$.
 
+
+For quadratic convergence, we first need to derive an inequality using a couple applications of the mean-value theorem.
+
+Let $\delta_k = d_k - c$.  Then $f'(\eta_k) (\delta_k) = f(d_k) - f(c) = f(d_k)$.  Rewriting, $\delta_k = \frac{f(d_k)}{f'(\eta_k)}$.  
+
+Then the Newton iteration can be rewritten as:
+
+$$\begin{aligned}
+\delta_{k+1} &= \delta_k - \frac{f(d_k)}{f'(d_k)} \\
+&= \frac{f(d_k)}{f'(\eta_k)} - \frac{f(d_k)}{f'(d_k)} \\
+&= \frac{ f(d_k) (f'(d_k) - f'(\eta_k)) }{f'(\eta_k) f'(d_k)} \\
+&= \frac{ f(d_k) f''(\xi_k)(d_k - \eta_k)}{f'(\eta_k) f'(d_k)} \\
+&= \frac{f''(\xi_k)}{f'(d_k)}\delta_k (d_k - \eta_k) \\
+&\leq \frac{f''(\xi_k)}{f'(d_k)}\delta_k^2 \\
+\end{aligned}$$
 
 
 ## Integer arithmetic
