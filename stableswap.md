@@ -134,9 +134,23 @@ $$\begin{aligned}
 &= \frac{f(d_k)}{f'(\eta_k)} - \frac{f(d_k)}{f'(d_k)} \\
 &= \frac{ f(d_k) (f'(d_k) - f'(\eta_k)) }{f'(\eta_k) f'(d_k)} \\
 &= \frac{ f(d_k) f''(\xi_k)(d_k - \eta_k)}{f'(\eta_k) f'(d_k)} \\
-&= \frac{f''(\xi_k)}{f'(d_k)}\delta_k (d_k - \eta_k) \\
-&\leq \frac{f''(\xi_k)}{f'(d_k)}\delta_k^2 \\
+&= \frac{f''(\xi_k)}{f'(d_k)} (d_k - \eta_k) \delta_k\\
+&\leq \frac{f''(\xi_k)}{f'(d_k)} \delta_k^2\\
+&\leq \frac{f''(d_k)}{f'(d_k)} \delta_k^2\\
+&\leq \frac{n (n+1) d_k^{n-1} }{(n+1) d_k^n + (An - 1) n^n \prod_i x_i  }\delta_k  \cdot \delta_k\\
+&\leq \frac{n (n+1) d_k^{n-1} }{(n+1) d_k^n }\delta_k  \cdot \delta_k\\
+&\leq n\frac{\delta_k}{d_k } \cdot \delta_k\\
+&\leq n\frac{\delta_k}{c } \cdot \delta_k\\
 \end{aligned}$$
+
+
+Note that $\frac{\delta_k}{c}$ is the distance of our estimate to the solution, as a percentage of the solution.
+
+In particular, if we can get $n\frac{\delta_0}{c} < m$ for the first estimate, then for subsequent estimates, we find:
+
+$$ \delta_{k} = m^{2^k - 1} \delta_0$$
+
+So if $m$ is less than 1, say $1/2$, this gives incredibly fast convergence.
 
 
 ## Integer arithmetic

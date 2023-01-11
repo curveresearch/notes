@@ -50,7 +50,7 @@
 
 \title{Curve Stableswap: From Whitepaper to Vyper}
 \author{Curve
-Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Curve Research, Curve DAO, and Curve Finance are not responsible for any damages that result from use of the provided information, regardless of its accuracy.}}
+Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}}
 \date{\today}
 
 \begin{document}
@@ -196,8 +196,8 @@ def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
 \end{verbatim}
 
 This code is used with minimal difference between all the stableswap
-contracts. Later versions choose to revert if the 255 iterations are
-exhausted before converging.
+contracts. For safety, later versions choose to revert if the 255
+iterations are exhausted before converging.
 
 The iterative formula is easily derived: \[\begin{aligned}
 d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
@@ -210,14 +210,82 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 where \(S = \sum_i x_i\) and
 \(D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}\)
 
-\hypertarget{quadratic-convergence}{%
-\subsubsection{Quadratic convergence}\label{quadratic-convergence}}
+\hypertarget{rate-of-convergence}{%
+\subsubsection{Rate of convergence}\label{rate-of-convergence}}
 
-Convergence is easily argued based on convexity of \(f\). However we
-need much better than that, we need at least linear convergence,
-otherwise 255 iterations is not sufficient. Also, in practice, exceeding
-more than half a dozen iterations is not sufficiently gas efficient
-enough to be competitive.
+Convergence follows from convexity of \(f\). However we need much better
+than that, we need to reduce the distance to the solution by half each
+time, otherwise 255 iterations is not sufficient. Also, in practice,
+exceeding more than half a dozen iterations is not sufficiently gas
+efficient enough to be competitive. We will in fact demonstrate
+quadratic convergence, which means the Netwon estimate will double in
+accuracy on each iteration.
+
+First, to see convergence is straightforward. First recall that
+\(f(P) < 0\) and \(f(S) > 0\) and that there is exactly one zero in
+\([P, S]\) for \(f\).
+
+We have the first derivative:
+
+\[ f'(D) = A\cdot n + (n+1) \frac{D^n}{n^n \prod_i x_i} - 1 \]
+
+and the second derivative:
+
+\[ f''(D) = n (n+1) \frac{D^{n-1}}{n^n \prod_i x_i} \]
+
+With \(A >= 1\), \(f' > 0\) and \(f'' > 0\) everywhere, and in
+particular on \([P, S]\) the domain of interest.
+
+The formula for Newton's method is:
+
+\[ d_{k+1} = d_k - \frac{f(d_k)}{f'(d_k)} \]
+
+Since \(f\) is convex, its graph lies about every tangent line and in
+particular, for every iteration of Newton's method, \(f(d_{k+1}) > 0\)
+(since the tangent line approximation intersects the \(y\)-axis at
+\(d_{k+1}\)). Since \(f'(d_k) > 0\) also, we see that \(d_{k+a}\) is
+always to the left of \(d_k\). The solution \(D\) we are seeking is
+always to the left of any iterate (because \(f(D) = 0\) while
+\(f(d_k) > 0\)) so the sequence \(d_k\) converges to \(c\). We claim
+\(f(c) = 0\). This can be seen from the iterative formula. Since
+\(d_{k} - d_{k+1}\) get arbitrarily small, \(\frac{f(d_k)}{f'(d_k)}\)
+gets arbitrarily small. But the denominator \(f'(d_k)\) has a max on
+\([c, S]\) so the numerator must be getting arbitrarily small,
+i.e.~\(f(d_k) \rightarrow 0\), which implies \(f(c) = 0\).
+
+For quadratic convergence, we first need to derive an inequality using a
+couple applications of the mean-value theorem.
+
+Let \(\delta_k = d_k - c\). Then
+\(f'(\eta_k) (\delta_k) = f(d_k) - f(c) = f(d_k)\). Rewriting,
+\(\delta_k = \frac{f(d_k)}{f'(\eta_k)}\).
+
+Then the Newton iteration can be rewritten as:
+
+\[\begin{aligned}
+\delta_{k+1} &= \delta_k - \frac{f(d_k)}{f'(d_k)} \\
+&= \frac{f(d_k)}{f'(\eta_k)} - \frac{f(d_k)}{f'(d_k)} \\
+&= \frac{ f(d_k) (f'(d_k) - f'(\eta_k)) }{f'(\eta_k) f'(d_k)} \\
+&= \frac{ f(d_k) f''(\xi_k)(d_k - \eta_k)}{f'(\eta_k) f'(d_k)} \\
+&= \frac{f''(\xi_k)}{f'(d_k)} (d_k - \eta_k) \delta_k\\
+&\leq \frac{f''(\xi_k)}{f'(d_k)} \delta_k^2\\
+&\leq \frac{f''(d_k)}{f'(d_k)} \delta_k^2\\
+&\leq \frac{n (n+1) d_k^{n-1} }{(n+1) d_k^n + (An - 1) n^n \prod_i x_i  }\delta_k  \cdot \delta_k\\
+&\leq \frac{n (n+1) d_k^{n-1} }{(n+1) d_k^n }\delta_k  \cdot \delta_k\\
+&\leq n\frac{\delta_k}{d_k } \cdot \delta_k\\
+&\leq n\frac{\delta_k}{c } \cdot \delta_k\\
+\end{aligned}\]
+
+Note that \(\frac{\delta_k}{c}\) is the distance of our estimate to the
+solution, as a percentage of the solution.
+
+In particular, if we can get \(n\frac{\delta_0}{c} < m\) for the first
+estimate, then for subsequent estimates, we find:
+
+\[ \delta_{k} = m^{2^k - 1} \delta_0\]
+
+So if \(m\) is less than 1, say \(1/2\), this gives incredibly fast
+convergence.
 
 \hypertarget{integer-arithmetic}{%
 \subsection{Integer arithmetic}\label{integer-arithmetic}}
@@ -358,6 +426,13 @@ the \texttt{exchange} function does the identical logic while handling
 token transfers and other fee logic, particularly sweeping ``admin
 fees'', which are the fees going to the DAO. In any case, the amount
 \texttt{dy} is the same.
+
+Note that an extra ``wei'' is subtracted in
+\texttt{xp{[}j{]}\ -\ y\ -\ 1}. This is because \texttt{y} might be
+truncated due to the integer division, effectively rounding down. So we
+compensate by increasing \texttt{y} by 1. Defending against value
+leakage like this protects the pool from attackers potentially draining
+the pool, although it may very slightly penalize the user in some cases.
 
 \hypertarget{fees}{%
 \section{Fees}\label{fees}}
