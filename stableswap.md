@@ -99,9 +99,28 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 
 where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$
 
-### Quadratic convergence
-Convergence is easily argued based on convexity of $f$.  However we need much better than that, we need at least linear convergence, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.
+### Rate of convergence
+Convergence follows from convexity of $f$.  However we need much better than that, we need to reduce the distance to the solution by half each time, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.  We will in fact demonstrate quadratic convergence, which means the Netwon estimate will double in accuracy on each iteration.
 
+First, to see convergence is straightforward.  First recall that $f(P) < 0$ and $f(S) > 0$ and that there is exactly one zero in $[P, S]$ for $f$. 
+
+We have the first derivative:
+
+$$ f'(D) = A\cdot n + (n+1) \frac{D^n}{n^n \prod_i x_i} - 1 $$
+
+and the second derivative:
+
+
+$$ f''(D) = n (n+1) \frac{D^{n-1}}{n^n \prod_i x_i} $$
+
+With $A >= 1$, $f' > 0$ and $f'' > 0$ everywhere, and in particular on $[P, S]$ the domain of interest.
+
+
+The formula for Newton's method is:
+
+$$ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} $$
+
+Since $f$ is convex, its graph lies about every tangent line and in particular, for every iteration of Newton's method, $f(d_{k+1}) > 0$ (since the tangent line approximation intersects the $y$-axis at $d_{k+1}$).  Since $f'(d_k) > 0$ also, we see that $d_{k+a}$ is always to the left of $d_k$.  The solution $D$ we are seeking is always to the left of any iterate (because $f(D) = 0$ while $f(d_k) > 0$) so the sequence $d_k$ converges to $c$.  We claim $f(c) = 0$.  This can be seen from the iterative formula.  Since $d_{k} - d_{k+1}$ get arbitrarily small, $\frac{f(d_k)}{f'(d_k)}$ gets arbitrarily small.  But the denominator $f'(d_k)$ has a max on $[c, S]$ so the numerator must be getting arbitrarily small, i.e. $f(d_k) \rightarrow 0$, which implies $f(c) = 0$.
 
 
 
