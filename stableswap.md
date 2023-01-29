@@ -57,6 +57,7 @@ the derivative of $f$, is positive (assuming $A >= 1$), so $f$ is strictly incre
 The stableswap contracts utilize Newton's method to solve for $D$.  It is easy to check $f'' > 0$, i.e. $f$ is convex.  An elementary argument shows that this guarantees convergence of Newton's method starting with initial point $S$ to the solution.
 
 The vyper code (from 3Pool) is:
+
 ```vyper
 @pure
 @internal
