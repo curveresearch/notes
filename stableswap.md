@@ -193,6 +193,7 @@ Note the actual vyper code cleverly defines $b$ as our $b$ without the $-D$ term
 
 
 The vyper code should be understandable now:
+
 ```vyper
 @view
 @internal
@@ -243,6 +244,7 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
 So given all the normalized balances (the out-token balance doesn't matter), we can compute the balance of the out-token that satisfies the stableswap equation for the given $D$ and other balances.
 
 This is what's done in the `get_dy` function in the stableswap contract:
+
 ```vyper
 @view
 @external
@@ -274,18 +276,59 @@ Note that an extra "wei" is subtracted in `xp[j] - y - 1`.  This is because `y` 
 
 
 # Fees
-Fees enter into the picture in a couple different ways.  During an exchange, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the stableswap invariant (the invariant increases when a coin balance increases, as can be checked using the usual calculus).  This effectively increases the balances for LPs when they redeem their LP tokens.
+Fees enter into the picture in three different ways.
 
-The other case is when liquidity is added to the pool (if liquidity is removed in an imbalanced way, fees also apply in that case).  When adding liquidity, swap fees are deducted for coin amounts that differ from the "ideal" balance (same proportions as the pool).  The reduced input amounts are then used to mint LP tokens.
+1) During an **exchange**, the out-token amount received by the user is reduced.  This is added back to the pool, which increases the stableswap invariant (the invariant increases when a coin balance increases, as can be checked using the usual calculus).  This increases the balances for LPs, effectively "auto-compounding" over time as LPs add or remove liquidity.
+
+2) When an LP **adds liquidity** fees are deducted for coin amounts that differ from the "ideal" balance (same proportions as the pool).  The reduced input amounts are then used to mint LP tokens.
+
+3) When an LP **removes liquidity imbalanced (or in one coin)** fees are yet again deducted for coin amounts differing from an "ideal" withdrawal (same proportions as the pool).  The fees here and in adding liquidity are designed to equal normal swap fees, with some assumptions we will spell out below.
+
+
 
 ## Exchange
 
 
 ## Adding and removing liquidity
 
-### Balanced deposits and withdrawals
+It is important to include a fee when adding or removing liquidity as otherwise, users are incentived to avoid swaps and merely add liquidity in one coin and remove in a different coin.  While the adding and removal of liquidity is more gas-intensive than a swap, the gas cost is fixed, meaning that for large swaps, there is a potentially significant savings to use this route.
 
-### Removing one coin
+First it should be noted that adding liquidity with coin amounts in the same proportions as the pool's reserves does not result in fees.  The same goes for the standard `remove_liquidity`, which withdraws amounts proportional to pool reserves.  This avoids penalizing liquidity provisioning.
+
+The key starting observation is that it is straighforward to increase `D` by any percentage by picking appropriate, proportional deposit amounts.  For example, if you want to increase `D` by 2%, you can do so increasing each coin balance by 2%.  This follows simply from the stableswap equation.
+
+Thus when adding amounts, $\{ \operatorname{amount}_i \}_{i=1,...,{N}} $, the new `D` is calculated from the increased pool reserves.  Then the ideal amounts, $\{ \operatorname{ideal}_i \}_{i=1,...,{N}} $, are calculated as the same percentage of each coin balance as the percentage increase in the new `D`.
+
+The fee $f_{\operatorname{add}}$ is taken from each absolute difference of a coin deposit amount from the corresponding ideal balance:
+
+$$ \text{fee deducted} = f_{\operatorname{add}} \cdot |\operatorname{amount}_i - \operatorname{ideal}_i| $$
+
+for each $i$-ith coin
+
+Note the same logic applies for $f_{\operatorname{remove}}$ (from now on, we'll assume we use the same fee for adding and removing).
+
+The question then becomes, what value should we pick for $f_{\operatorname{add}}$ so the total fees deducted from adding and removing liquidity equals $f_{\operatorname{swap}}$?
+
+In order to simplify this calculation, we make some simplifying assumptions.  First we assume that the amounts involved are very small compared to the pool reserves.  This lets us suppose the pool is always balanced (the actual imbalance is negligible).
+
+If we deposit $a$ in one coin, the increase in $D$ is by $a$ (we can assume $D$ is the sum of balances and stays so, as it is balanced).  The ideal amounts then become $\frac{a}{n}, ..., \frac{a}{n}$.
+
+The fees deducted on adding liquidity is then:
+
+$$ = f_{\operatorname{add}}\left( \left|a - \frac{a}{n}\right| + \left|0 - \frac{a}{n}\right| + ... + \left|0 - \frac{a}{n}\right| \right) $$
+
+The fees deducted on removing liquidity is also the same, since the output amount is still $a$ (pool is balanced).
+
+So we must have:
+
+$$ a \cdot f_{\operatorname{swap}} = 2 \cdot f_{\operatorname{add}} \left( \left|a - \frac{a}{n}\right| + \left|0 - \frac{a}{n}\right| + ... + \left|0 - \frac{a}{n}\right| \right)$$
+
+
+$$  f_{\operatorname{swap}} = 2 \cdot f_{\operatorname{add}} \left( \left|1 - \frac{1}{n}\right| + \left|0 - \frac{1}{n}\right| + ... + \left|0 - \frac{1}{n}\right| \right)$$
+
+$$  f_{\operatorname{swap}} = 2 \cdot f_{\operatorname{add}} \left( 2 \frac{n-1}{n} \right)$$
+
+$$  f_{\operatorname{add}} = \frac{n}{4(n - 1)} \cdot f_{\operatorname{swap}}$$
 
 
 # Useful formulas
