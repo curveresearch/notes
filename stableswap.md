@@ -7,6 +7,7 @@ subtitle: v0.2 (draft version)
 header-includes: |
     \usepackage{draftwatermark}
     \SetWatermarkLightness{0.95}
+geometry: margin=1.35in
 ---
 
 
