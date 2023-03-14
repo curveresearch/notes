@@ -3,6 +3,7 @@ title: "Curve Stableswap: From Whitepaper to Vyper"
 author: Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}
 email: info@curveresearch.org
 date: \today
+subtitle: v0.2 (draft version)
 header-includes: |
     \usepackage{draftwatermark}
     \SetWatermarkLightness{0.95}

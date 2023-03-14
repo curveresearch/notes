@@ -49,6 +49,13 @@
 \SetWatermarkLightness{0.95}
 
 \title{Curve Stableswap: From Whitepaper to Vyper}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{v0.2 (draft version)}
 \author{Curve
 Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}}
 \date{\today}
