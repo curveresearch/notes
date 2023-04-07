@@ -132,34 +132,38 @@ The vyper code (from 3Pool) is:
 @pure
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
-    S: uint256 = 0
+    S: uint256 = 0 
     for _x in xp:
         S += _x
     if S == 0:
         return 0
 
     Dprev: uint256 = 0
-    D: uint256 = S
+    D: uint256 = S  /*@\llabel{initial}@*/
     Ann: uint256 = amp * N_COINS
     for _i in range(255):
         D_P: uint256 = D
         for _x in xp:
-            D_P = D_P * D / (_x * N_COINS)
+            D_P = D_P * D / (_x * N_COINS)  /*@\llabel{zero_division}@*/
         Dprev = D
-        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)
-        # Equality with the precision of 1
+        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)  /*@\llabel{formula}@*/
+        # Equality with the precision of 1  /*@\llabel{convergence}@*/
         if D > Dprev:
             if D - Dprev <= 1:
                 break
         else:
             if Dprev - D <= 1:
                 break
-    return D
+    return D  /*@\llabel{revert}@*/
 ```
 
-This code is used with minimal difference between all the stableswap contracts.  For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
+This code is used with minimal difference between all the stableswap contracts.
 
-The iterative formula is easily derived:
+\ref{initial} The initial guess for Newton's Method is the sum of all the balances.  From our previous remarks, we know this is the maximum possible value for $D$ and as we iterate, our guesses will decreasingly converge to the solution.
+
+\ref{zero_division} If we passed in a zero balance, this will revert from a division by zero.
+
+\ref{formula} The iterative formula is easily derived:
 $$\begin{aligned}
 d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 &= d_k - \frac{A n (d_k - \sum_i x_i)  + d_k(\frac{d_k^{n}}{n^n \prod_i x_i} - 1)}{\frac{(n+1)d_k^n}{n^n \prod_i x_i} + An - 1} \\
@@ -169,6 +173,10 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 \end{aligned}$$
 
 where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$
+
+\ref{convergence} Convergence is gone into more detail in the next section.  For now, note that the idea is to have extremely precise convergence and this can be achieved due to the convexity of the curve we move along.
+
+\ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
 
 ### Rate of convergence
 Convergence follows from convexity of $f$.  However we need much better than that, we need to reduce the distance to the solution by half each time, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.  We will in fact demonstrate quadratic convergence, which means the Netwon estimate will double in accuracy on each iteration.
