@@ -74,7 +74,7 @@ The stableswap contracts utilize Newton's method to solve for $D$.  It is easy t
 
 The vyper code (from 3Pool) is:
 
-```vyper
+```python {.numberLines startFrom="193"}
 @pure
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
