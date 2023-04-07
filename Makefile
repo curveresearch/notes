@@ -17,7 +17,7 @@ help:
 # make tex name=stableswap
 .PHONY: tex
 tex:
-	pandoc --from=markdown --output=$(name).tex $(name).md --to=latex --standalone --citeproc
+	pandoc --from=markdown --output=$(name).tex $(name).md --to=latex --standalone --citeproc --listings
 
 # example (for stableswap.md):
 #

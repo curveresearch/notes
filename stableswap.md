@@ -16,6 +16,60 @@ header-includes: |
     \usepackage{authblk}
     \author{Chanho Suh\\ {\small chanho@curveresearch.org}}
     \affil{Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}}
+
+    \usepackage{xcolor}
+    \usepackage{pifont}
+
+    \lstset{
+      language=python,
+      numbers=left,
+      numberstyle=\small\itshape\llabelput,
+      stepnumber=1,
+      frame=lines,
+      backgroundcolor=\color{yellow!25},
+      columns=flexible,
+      escapeinside={/*@}{@*/},
+      basicstyle=\ttfamily\footnotesize,
+      breaklines=true
+    }
+
+    \makeatletter
+    \AtBeginDocument{%
+      % Counter `lstlisting' is not defined before `\begin{document}'
+      \newcounter{llabel}[lstlisting]%
+      \renewcommand*{\thellabel}{%
+        \ifnum\value{llabel}<0 %  
+          \@ctrerr
+        \else
+          \ifnum\value{llabel}>10 %
+            \@ctrerr
+          \else
+            \protect\ding{\the\numexpr\value{llabel}+201\relax}%
+          \fi
+        \fi  
+      }%   
+    }   
+    \newlength{\llabelsep}
+    \setlength{\llabelsep}{5pt}
+
+    \newcommand*{\llabel@name}{%
+      llabel\the\value{lstlisting}.\the\lst@lineno
+    }
+    \newcommand*{\llabel}[1]{%
+      \begingroup
+        \refstepcounter{llabel}%
+        \label{#1}%
+        \label{\llabel@name}%
+      \endgroup
+    }
+    \newcommand*{\llabelput}{%
+      \@ifundefined{r@\llabel@name}{%
+      }{%
+        \ref{\llabel@name}%
+        \kern\llabelsep
+      }%
+    }   
+    \makeatother
     ```
 geometry: margin=1.35in
 colorlinks: true
