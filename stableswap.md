@@ -4,17 +4,18 @@ author: Curve Research\footnote{Curve Research is a community organization funde
 email: info@curveresearch.org
 date: \today
 subtitle: v0.2 (draft version)
+bibliography: stableswap.bib
 header-includes: |
     \usepackage{draftwatermark}
     \SetWatermarkLightness{0.95}
 geometry: margin=1.35in
+colorlinks: true
 ---
 
 
 # Introduction
 
-The stableswap invariant was derived by Michael Egorov and promulgated in the [whitepaper](https://curve.fi/files/stableswap-paper.pdf), "StableSwap - efficient mechanism for Stablecoin
-liquidity".  The whitepaper clearly explained the invariant and its implications for DeFi; however, there are differences with how it is implemented in practice, currently across hundreds of live contracts across Ethereum and other layer 2s and chains.
+The stableswap invariant was derived by Michael Egorov and promulgated in the [stableswap whitepaper](https://curve.fi/files/stableswap-paper.pdf) [@egorov2019].  The whitepaper clearly explained the invariant and its implications for DeFi; however, there are differences with how it is implemented in practice, currently across hundreds of live contracts across Ethereum and other layer 2s and chains.
 
 Particularly important details for the practitioner but not given in the whitepaper are:
 
@@ -381,3 +382,6 @@ Some sanity checks:
 
 https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
 https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
+
+
+# References
