@@ -21,16 +21,19 @@ header-includes: |
     \usepackage{pifont}
 
     \lstset{
-      language=python,
+      language=Python,
       numbers=left,
-      numberstyle=\small\itshape\llabelput,
+      numberstyle=\small,
       stepnumber=1,
       frame=lines,
       backgroundcolor=\color{yellow!25},
-      columns=flexible,
+      columns=fixed,
       escapeinside={/*@}{@*/},
-      basicstyle=\ttfamily\footnotesize,
-      breaklines=true
+      basicstyle=\ttfamily\scriptsize,
+      breaklines=true,
+      commentstyle=\color{gray},
+      keywordstyle=\color{blue},
+      stringstyle=\color{green}
     }
 
     \makeatletter
@@ -38,7 +41,7 @@ header-includes: |
       % Counter `lstlisting' is not defined before `\begin{document}'
       \newcounter{llabel}[lstlisting]%
       \renewcommand*{\thellabel}{%
-        \ifnum\value{llabel}<0 %  
+        \ifnum\value{llabel}<0 %
           \@ctrerr
         \else
           \ifnum\value{llabel}>10 %
@@ -46,32 +49,27 @@ header-includes: |
           \else
             \protect\ding{\the\numexpr\value{llabel}+201\relax}%
           \fi
-        \fi  
-      }%   
-    }   
+        \fi
+      }%
+    }
     \newlength{\llabelsep}
     \setlength{\llabelsep}{5pt}
 
-    \newcommand*{\llabel@name}{%
-      llabel\the\value{lstlisting}.\the\lst@lineno
-    }
     \newcommand*{\llabel}[1]{%
       \begingroup
         \refstepcounter{llabel}%
         \label{#1}%
-        \label{\llabel@name}%
+        \llap{%
+          \thellabel\kern\llabelsep
+          \hphantom{\lst@numberstyle\the\lst@lineno}%
+          \kern\lst@numbersep
+        }%
       \endgroup
     }
-    \newcommand*{\llabelput}{%
-      \@ifundefined{r@\llabel@name}{%
-      }{%
-        \ref{\llabel@name}%
-        \kern\llabelsep
-      }%
-    }   
     \makeatother
     ```
-geometry: margin=1.35in
+geometry:
+- margin=1.35in
 colorlinks: true
 ---
 
@@ -128,7 +126,7 @@ The stableswap contracts utilize Newton's method to solve for $D$.  It is easy t
 
 The vyper code (from 3Pool) is:
 
-```python {.numberLines startFrom="193"}
+```python {#get_D .numberLines startFrom="193"}
 @pure
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
@@ -139,22 +137,22 @@ def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
         return 0
 
     Dprev: uint256 = 0
-    D: uint256 = S  /*@\llabel{initial}@*/
+    D: uint256 = S            /*@\llabel{initial}@*/
     Ann: uint256 = amp * N_COINS
     for _i in range(255):
         D_P: uint256 = D
         for _x in xp:
-            D_P = D_P * D / (_x * N_COINS)  /*@\llabel{zero_division}@*/
+            D_P = D_P * D / (_x * N_COINS)            /*@\llabel{zero_division}@*/
         Dprev = D
-        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)  /*@\llabel{formula}@*/
-        # Equality with the precision of 1  /*@\llabel{convergence}@*/
+        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)            /*@\llabel{formula}@*/
+        # Equality with the precision of 1           /*@\llabel{convergence}@*/
         if D > Dprev:
             if D - Dprev <= 1:
                 break
         else:
             if Dprev - D <= 1:
                 break
-    return D  /*@\llabel{revert}@*/
+    return D            /*@\llabel{revert}@*/
 ```
 
 This code is used with minimal difference between all the stableswap contracts.
@@ -272,7 +270,7 @@ Note the actual vyper code cleverly defines $b$ as our $b$ without the $-D$ term
 
 The vyper code should be understandable now:
 
-```vyper
+```{#get_y .numberLines startFrom="356"}
 @view
 @internal
 def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
@@ -308,7 +306,7 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
     y: uint256 = D
     for _i in range(255):
         y_prev = y
-        y = (y*y + c) / (2 * y + b - D)
+        y = (y*y + c) / (2 * y + b - D)            /*@\llabel{quadratic_iteration}@*/
         # Equality with the precision of 1
         if y > y_prev:
             if y - y_prev <= 1:
@@ -319,11 +317,13 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
     return y
 ```
 
+\ref{quadratic_iteration}
+
 So given all the normalized balances (the out-token balance doesn't matter), we can compute the balance of the out-token that satisfies the stableswap equation for the given $D$ and other balances.
 
 This is what's done in the `get_dy` function in the stableswap contract:
 
-```vyper
+```{#get_dy .numberLines startFrom="356"}
 @view
 @external
 def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
@@ -340,7 +340,7 @@ def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
 
 The key logic is given in the lines:
 
-```vyper
+```{.numberLines startFrom="364"}
 y: uint256 = self.get_y(i, j, x, xp)
 dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
 ```
@@ -451,8 +451,9 @@ Some sanity checks:
 ## Depth
 
 
-https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
-https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
 
 
 # References
+
+Etherscan, Curve 3Pool, https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
+GitHub, 3Pool vyper code, https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
