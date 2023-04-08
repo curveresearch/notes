@@ -1,20 +1,24 @@
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 %
 \documentclass[
 ]{article}
-\usepackage{lmodern}
-\usepackage{amssymb,amsmath}
-\usepackage{ifxetex,ifluatex}
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
 \else % if luatex or xetex
-  \usepackage{unicode-math}
+  \usepackage{unicode-math} % this also loads fontspec
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -33,21 +37,110 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{xcolor}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\hypersetup{
-  pdftitle={Curve Stableswap: From Whitepaper to Vyper},
-  pdfauthor={Curve Research},
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
-\urlstyle{same} % disable monospaced font for URLs
 \usepackage[margin=1.35in]{geometry}
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 \usepackage{draftwatermark}
 \SetWatermarkLightness{0.95}
+\usepackage[symbol]{footmisc}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\usepackage{authblk}
+\author{Chanho Suh\\ {\small chanho@curveresearch.org}}
+\affil{Curve Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}}
+
+\usepackage{xcolor}
+\usepackage{pifont}
+
+\lstset{
+  language=Python,
+  numbers=left,
+  numberstyle=\small,
+  stepnumber=1,
+  frame=lines,
+  backgroundcolor=\color{yellow!25},
+  columns=fixed,
+  escapeinside={/*@}{@*/},
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  stringstyle=\color{green}
+}
+
+\makeatletter
+\AtBeginDocument{%
+  % Counter `lstlisting' is not defined before `\begin{document}'
+  \newcounter{llabel}[lstlisting]%
+  \renewcommand*{\thellabel}{%
+    \ifnum\value{llabel}<0 %
+      \@ctrerr
+    \else
+      \ifnum\value{llabel}>10 %
+        \@ctrerr
+      \else
+        \protect\ding{\the\numexpr\value{llabel}+201\relax}%
+      \fi
+    \fi
+  }%
+}
+\newlength{\llabelsep}
+\setlength{\llabelsep}{5pt}
+
+\newcommand*{\llabel}[1]{%
+  \begingroup
+    \refstepcounter{llabel}%
+    \label{#1}%
+    \llap{%
+      \thellabel\kern\llabelsep
+      \hphantom{\lst@numberstyle\the\lst@lineno}%
+      \kern\lst@numbersep
+    }%
+  \endgroup
+}
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Curve Stableswap: From Whitepaper to Vyper},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
 
 \title{Curve Stableswap: From Whitepaper to Vyper}
 \usepackage{etoolbox}
@@ -57,8 +150,7 @@
 }
 \makeatother
 \subtitle{v0.2 (draft version)}
-\author{Curve
-Research\footnote{Curve Research is a community organization funded through the Curve DAO grants program and is not affiliated with Curve Finance (Swiss Stake GmbH).  Neither Curve Research nor Curve DAO are responsible for any damages that result from use of the provided information or guarantee its accuracy.}}
+\author{true}
 \date{\today}
 
 \begin{document}
@@ -68,12 +160,11 @@ Research\footnote{Curve Research is a community organization funded through the 
 \section{Introduction}\label{introduction}}
 
 The stableswap invariant was derived by Michael Egorov and promulgated
-in the \href{https://curve.fi/files/stableswap-paper.pdf}{whitepaper},
-``StableSwap - efficient mechanism for Stablecoin liquidity''. The
-whitepaper clearly explained the invariant and its implications for
-DeFi; however, there are differences with how it is implemented in
-practice, currently across hundreds of live contracts across Ethereum
-and other layer 2s and chains.
+in the \href{https://curve.fi/files/stableswap-paper.pdf}{stableswap
+whitepaper} (Egorov 2019). The whitepaper clearly explained the
+invariant and its implications for DeFi; however, there are differences
+with how it is implemented in practice, currently across hundreds of
+live contracts across Ethereum and other layer 2s and chains.
 
 Particularly important details for the practitioner but not given in the
 whitepaper are:
@@ -182,40 +273,47 @@ method starting with initial point \(S\) to the solution.
 
 The vyper code (from 3Pool) is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, numbers=left, firstnumber=193, label=get_D]
 @pure
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
-    S: uint256 = 0
+    S: uint256 = 0 
     for _x in xp:
         S += _x
     if S == 0:
         return 0
 
     Dprev: uint256 = 0
-    D: uint256 = S
+    D: uint256 = S            /*@\llabel{initial}@*/
     Ann: uint256 = amp * N_COINS
     for _i in range(255):
         D_P: uint256 = D
         for _x in xp:
-            D_P = D_P * D / (_x * N_COINS)
+            D_P = D_P * D / (_x * N_COINS)            /*@\llabel{zero_division}@*/
         Dprev = D
-        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)
-        # Equality with the precision of 1
+        D = (Ann * S + D_P * N_COINS) * D / ((Ann - 1) * D + (N_COINS + 1) * D_P)            /*@\llabel{formula}@*/
+        # Equality with the precision of 1           /*@\llabel{convergence}@*/
         if D > Dprev:
             if D - Dprev <= 1:
                 break
         else:
             if Dprev - D <= 1:
                 break
-    return D
-\end{verbatim}
+    return D            /*@\llabel{revert}@*/
+\end{lstlisting}
 
 This code is used with minimal difference between all the stableswap
-contracts. For safety, later versions choose to revert if the 255
-iterations are exhausted before converging.
+contracts.
 
-The iterative formula is easily derived: \[\begin{aligned}
+\ref{initial} The initial guess for Newton's Method is the sum of all
+the balances. From our previous remarks, we know this is the maximum
+possible value for \(D\) and as we iterate, our guesses will
+decreasingly converge to the solution.
+
+\ref{zero_division} If we passed in a zero balance, this will revert
+from a division by zero.
+
+\ref{formula} The iterative formula is easily derived: \[\begin{aligned}
 d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 &= d_k - \frac{A n (d_k - \sum_i x_i)  + d_k(\frac{d_k^{n}}{n^n \prod_i x_i} - 1)}{\frac{(n+1)d_k^n}{n^n \prod_i x_i} + An - 1} \\
 &= \frac{An\sum_i x_i + \frac{nd_k^{n+1}}{n^n \prod_i x_i}}{\frac{(n+1)d_k^n}{n^n\prod_i x_i} + An - 1} \\
@@ -225,6 +323,14 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 
 where \(S = \sum_i x_i\) and
 \(D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}\)
+
+\ref{convergence} Convergence is gone into more detail in the next
+section. For now, note that the idea is to have extremely precise
+convergence and this can be achieved due to the convexity of the curve
+we move along.
+
+\ref{revert} For safety, later versions choose to revert if the 255
+iterations are exhausted before converging.
 
 \hypertarget{rate-of-convergence}{%
 \subsubsection{Rate of convergence}\label{rate-of-convergence}}
@@ -348,13 +454,13 @@ x_j &:= x_j - \frac{x_j^2 + bx_j - c}{2x_j + b}\\
 \end{aligned} \]
 
 Note the actual vyper code cleverly defines \(b\) as our \(b\) without
-the \(-D\) term. This allows \(b\) to be defined as a \texttt{uint256}
-since otherwise it could be negative (although of course \(2x_j + b\) is
-always positive).
+the \(-D\) term. This allows \(b\) to be defined as a
+\passthrough{\lstinline!uint256!} since otherwise it could be negative
+(although of course \(2x_j + b\) is always positive).
 
 The vyper code should be understandable now:
 
-\begin{verbatim}
+\begin{lstlisting}[numbers=left, firstnumber=356, label=get_y]
 @view
 @internal
 def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
@@ -390,7 +496,7 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
     y: uint256 = D
     for _i in range(255):
         y_prev = y
-        y = (y*y + c) / (2 * y + b - D)
+        y = (y*y + c) / (2 * y + b - D)            /*@\llabel{quadratic_iteration}@*/
         # Equality with the precision of 1
         if y > y_prev:
             if y - y_prev <= 1:
@@ -399,16 +505,18 @@ def get_y(i: int128, j: int128, x: uint256, xp_: uint256[N_COINS]) -> uint256:
             if y_prev - y <= 1:
                 break
     return y
-\end{verbatim}
+\end{lstlisting}
+
+\ref{quadratic_iteration}
 
 So given all the normalized balances (the out-token balance doesn't
 matter), we can compute the balance of the out-token that satisfies the
 stableswap equation for the given \(D\) and other balances.
 
-This is what's done in the \texttt{get\_dy} function in the stableswap
-contract:
+This is what's done in the \passthrough{\lstinline!get\_dy!} function in
+the stableswap contract:
 
-\begin{verbatim}
+\begin{lstlisting}[numbers=left, firstnumber=356, label=get_dy]
 @view
 @external
 def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
@@ -421,36 +529,39 @@ def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
     dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
     _fee: uint256 = self.fee * dy / FEE_DENOMINATOR
     return dy - _fee
-\end{verbatim}
+\end{lstlisting}
 
 The key logic is given in the lines:
 
-\begin{verbatim}
+\begin{lstlisting}[numbers=left, firstnumber=364]
 y: uint256 = self.get_y(i, j, x, xp)
 dy: uint256 = (xp[j] - y - 1) * PRECISION / rates[j]
-\end{verbatim}
+\end{lstlisting}
 
-As usual the \texttt{xp} balances are the virtual balances, the token
-balances normalized to be in the same units as \texttt{D} with any rate
-adjustment to compensate for changes in value, e.g.~accrued interest.
+As usual the \passthrough{\lstinline!xp!} balances are the virtual
+balances, the token balances normalized to be in the same units as
+\passthrough{\lstinline!D!} with any rate adjustment to compensate for
+changes in value, e.g.~accrued interest.
 
-So by using \texttt{get\_y} on the in-token balance increased by the
-swap amount \texttt{dx}, we can get the new out-token balance and
-subtract from the old out-token balances, which gives us \texttt{dy}.
-This then gets adjusted to native token units with the fee taken out.
+So by using \passthrough{\lstinline!get\_y!} on the in-token balance
+increased by the swap amount \passthrough{\lstinline!dx!}, we can get
+the new out-token balance and subtract from the old out-token balances,
+which gives us \passthrough{\lstinline!dy!}. This then gets adjusted to
+native token units with the fee taken out.
 
-The \texttt{get\_dy} isn't actually what's used to do the exchange, but
-the \texttt{exchange} function does the identical logic while handling
-token transfers and other fee logic, particularly sweeping ``admin
-fees'', which are the fees going to the DAO. In any case, the amount
-\texttt{dy} is the same.
+The \passthrough{\lstinline!get\_dy!} isn't actually what's used to do
+the exchange, but the \passthrough{\lstinline!exchange!} function does
+the identical logic while handling token transfers and other fee logic,
+particularly sweeping ``admin fees'', which are the fees going to the
+DAO. In any case, the amount \passthrough{\lstinline!dy!} is the same.
 
 Note that an extra ``wei'' is subtracted in
-\texttt{xp{[}j{]}\ -\ y\ -\ 1}. This is because \texttt{y} might be
-truncated due to the integer division, effectively rounding down. So we
-compensate by increasing \texttt{y} by 1. Defending against value
-leakage like this protects the pool from attackers potentially draining
-the pool, although it may very slightly penalize the user in some cases.
+\passthrough{\lstinline!xp[j] - y - 1!}. This is because
+\passthrough{\lstinline!y!} might be truncated due to the integer
+division, effectively rounding down. So we compensate by increasing
+\passthrough{\lstinline!y!} by 1. Defending against value leakage like
+this protects the pool from attackers potentially draining the pool,
+although it may very slightly penalize the user in some cases.
 
 \hypertarget{fees}{%
 \section{Fees}\label{fees}}
@@ -494,9 +605,9 @@ savings to use this route.
 
 First it should be noted that adding liquidity with coin amounts in the
 same proportions as the pool's reserves does not result in fees. The
-same goes for the standard \texttt{remove\_liquidity}, which withdraws
-amounts proportional to pool reserves. This avoids penalizing liquidity
-provisioning.
+same goes for the standard \passthrough{\lstinline!remove\_liquidity!},
+which withdraws amounts proportional to pool reserves. This avoids
+penalizing liquidity provisioning.
 
 The key starting observation is that it is straighforward to increase
 \(D\) by any percentage by picking appropriate, proportional deposit
@@ -607,7 +718,21 @@ Some sanity checks:
 \hypertarget{depth}{%
 \subsection{Depth}\label{depth}}
 
+\hypertarget{references}{%
+\section{References}\label{references}}
+
+Etherscan, Curve 3Pool,
 https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
+GitHub, 3Pool vyper code,
 https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-egorov2019}{}}%
+Egorov, Michael. 2019. {``StableSwap - Efficient Mechanism for
+Stablecoin Liquidity.''}
+\url{https://curve.fi/files/stableswap-paper.pdf}.
+
+\end{CSLReferences}
 
 \end{document}
