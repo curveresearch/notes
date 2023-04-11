@@ -23,8 +23,8 @@ header-includes: |
     \lstset{
       language=Python,
       numbers=left,
-      numberstyle=\small,
-      stepnumber=1,
+      numberstyle=\tiny,
+      stepnumber=5,
       frame=lines,
       backgroundcolor=\color{yellow!25},
       columns=fixed,
@@ -33,7 +33,9 @@ header-includes: |
       breaklines=true,
       commentstyle=\color{gray},
       keywordstyle=\color{blue},
-      stringstyle=\color{green}
+      stringstyle=\color{green},
+      captionpos=b,
+      otherkeywords={}
     }
 
     \makeatletter
@@ -47,7 +49,7 @@ header-includes: |
           \ifnum\value{llabel}>10 %
             \@ctrerr
           \else
-            \protect\ding{\the\numexpr\value{llabel}+201\relax}%
+            \protect\footnotesize\ding{\the\numexpr\value{llabel}+201\relax}%
           \fi
         \fi
       }%
@@ -126,7 +128,7 @@ The stableswap contracts utilize Newton's method to solve for $D$.  It is easy t
 
 The vyper code (from 3Pool) is:
 
-```python {#get_D .numberLines startFrom="193"}
+```python {#get_D .numberLines startFrom="193" caption="Calculation of D, the stableswap invariant"}
 @pure
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
