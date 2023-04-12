@@ -126,7 +126,7 @@ the derivative of $f$, is positive (assuming $A >= 1$), so $f$ is strictly incre
 ## Newton's method
 The stableswap contracts utilize Newton's method to solve for $D$.  It is easy to check $f'' > 0$, i.e. $f$ is convex.  An elementary argument later will show that this guarantees convergence of Newton's method starting with initial point $S$ to the solution.
 
-The vyper code (from 3Pool) is:
+The vyper code [@curvefi-3pool] is:
 
 ```python {#get_D .numberLines startFrom="193" caption="Calculation of D, the stableswap invariant"}
 @pure
@@ -457,5 +457,3 @@ Some sanity checks:
 
 # References
 
-Etherscan, Curve 3Pool, https://etherscan.io/address/0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
-GitHub, 3Pool vyper code, https://github.com/curvefi/curve-contract/blob/d808ed824ad6008d554dc7a70c0bbcb2ba8b9349/contracts/pools/3pool/StableSwap3Pool.vy
