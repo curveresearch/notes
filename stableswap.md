@@ -129,7 +129,7 @@ The stableswap contracts utilize Newton's method to solve for $D$.  It is easy t
 The vyper code [@curvefi-3pool] is:
 
 ```python {#get_D .numberLines startFrom="193" caption="Calculation of D, the stableswap invariant"}
-@pure
+@pure             /*@\llabel{pure}@*/
 @internal
 def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
     S: uint256 = 0 
@@ -159,9 +159,11 @@ def get_D(xp: uint256[N_COINS], amp: uint256) -> uint256:
 
 This code is used with minimal difference between all the stableswap contracts.
 
+\ref{pure} In general, pure functions for calculations are to be preferred as they simplify logic and testing, while saving gas costs, as reading storage is among the most expensive EVM operations.
+
 \ref{initial} The initial guess for Newton's Method is the sum of all the balances.  From our previous remarks, we know this is the maximum possible value for $D$ and as we iterate, our guesses will decreasingly converge to the solution.
 
-\ref{zero_division} If we passed in a zero balance, this will revert from a division by zero.
+\ref{zero_division} If we passed in a zero balance, this will revert from a division by zero.  Note naively computing $D_p$ by multiplying out the numerator of $\frac{D^{n+1}}{n^n \prod_i x_i}$ easily overflows $2^{256} (\approx 10^{77})$ for reasonable balances (remember balances are normalized to 18 decimals).  Iteratively truncating by integer division in this manner is a reasonable tradeoff.
 
 \ref{formula} The iterative formula is easily derived:
 $$\begin{aligned}
@@ -174,7 +176,7 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 
 where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$
 
-\ref{convergence} Convergence is gone into more detail in the next section.  For now, note that the idea is to have extremely precise convergence and this can be achieved due to the convexity of the curve we move along.
+\ref{convergence} Convergence is gone into more detail in the next section.  For now, note we can achieve extremely precise convergence due to the convexity of the curve we move along.  The formula is carefully formulated to avoid loss of precision by integer division.  The quantities $D$, $D_p$, $S$, and $d_k$ all are of magnitude $\operatorname{TVL} \cdot 10^{18}$, where $\operatorname{TVL}$ is the order of magnitude of the pool value in dollars.  This means the numerator is of magnitude $An\cdot (\operatorname{TVL}\cdot 10^{18})^2$ while the denominator has magnitude $An\cdot \operatorname{TVL}\cdot 10^{18}$.  This means we can expect the result to be of magnitude $\operatorname{TVL}\cdot 10^{18}$ and to be accurate within 1 smallest unit of $D$.
 
 \ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
 
