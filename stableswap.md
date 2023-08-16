@@ -5,7 +5,7 @@ author:
   email: chanho@curveresearch.org
   affiliation: Curve Research
 date: \today
-subtitle: v0.2 (draft version)
+subtitle: v0.3 (draft version)
 bibliography: stableswap.bib
 header-includes: |
     ```{=latex}
