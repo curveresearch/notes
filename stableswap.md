@@ -174,9 +174,11 @@ d_{k+1} &= d_k - \frac{f(d_k)}{f'(d_k)} \\
 &= \frac{(AnS + nD_p(d_k))d_k}{(n+1)D_p(d_k) + (An-1)d_k}\\
 \end{aligned}$$
 
-where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$
+where $S = \sum_i x_i$ and $D_p(d_k) = \frac{d_k^{n+1}}{n^n \prod_i x_i}$.
 
-\ref{convergence} Convergence is gone into more detail in the next section.  For now, note we can achieve extremely precise convergence due to the convexity of the curve we move along.  The formula is carefully formulated to avoid loss of precision by integer division.  The quantities $D$, $D_p$, $S$, and $d_k$ all are of magnitude $\operatorname{TVL} \cdot 10^{18}$, where $\operatorname{TVL}$ is the order of magnitude of the pool value in dollars.  This means the numerator is of magnitude $An\cdot (\operatorname{TVL}\cdot 10^{18})^2$ while the denominator has magnitude $An\cdot \operatorname{TVL}\cdot 10^{18}$.  This means we can expect the result to be of magnitude $\operatorname{TVL}\cdot 10^{18}$ and to be accurate within 1 smallest unit of $D$.
+Note the careful formulation to avoid loss of precision by integer division.  The quantities $D$, $D_p$, $S$, and $d_k$ all are of magnitude $\operatorname{TVL} \cdot 10^{18}$, where $\operatorname{TVL}$ is the order of magnitude of the pool value in dollars.  This means the numerator is of magnitude $An\cdot (\operatorname{TVL}\cdot 10^{18})^2$ while the denominator has magnitude $An\cdot \operatorname{TVL}\cdot 10^{18}$.  This means we can expect the result to be of magnitude $\operatorname{TVL}\cdot 10^{18}$ and to be accurate within 1 smallest unit of $D$.
+
+\ref{convergence} Convergence is gone into more detail in the next section.  For now, note we can achieve extremely precise convergence due to the convexity of the curve we move along.
 
 \ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
 
@@ -235,6 +237,12 @@ So if $m$ is less than 1, say $1/2$, this gives incredibly fast convergence.
 
 
 ## Integer arithmetic
+While in theory, the Newton iterates should converge for the stableswap curve, the actual guarantee is nixed by the EVM constraint that it must all be done in integer arithmetic.  In particular, note that when computing the iterate, we do a big division which can make the value overshoot, i.e. go below, the solution $c$.  So the iterates do not have to be monotonic, and in fact, practical experiments show this can happen when the pool is severely imbalanced.  In such a case, the next iterate will then go *above* $c$ and can (as shown in practical experiments) cause an infinite cycle going below and above the solution. 
+
+One very simple way ot stopping such infinite cycles is to check if the iterate is larger than the previous iterate.  If so, we can expect that iteration has "bounced" due to the integer truncation and use the previous iterate as our return value.  This is in fact a standard way to handle integer arithmetical issues in such monotonically converging uses of Newton's method.
+
+The stopping criterion used in current stableswap conditions is to check that the current iterate and previous iterate differs by at most 1.  This does not in fact block infinite cycles.  In practice however, such infinite cycles do not appear to happen under very imbalanced conditions.  Nonetheless the "bounce" criterion may be preferred as it can evidently handle a much greater range of imbalance.
+
 
 
 # The swap equation
