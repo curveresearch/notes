@@ -180,7 +180,7 @@ Note the careful formulation to avoid loss of precision by integer division.  Th
 
 \ref{convergence} Convergence is gone into more detail in the next section.  For now, note we can achieve extremely precise convergence due to the convexity of the curve we move along.
 
-\ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.
+\ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.  Note that typically conditions 4-6 iterations are expected, with a handful more under extreme imbalances.  Stableswap math has proven capable in both numerical and live testing of handling imbalances that arise in practice with significantly less two dozen iterations.
 
 ### Rate of convergence
 Convergence follows from convexity of $f$.  However we need much better than that, we need to reduce the distance to the solution by half each time, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.  We will in fact demonstrate quadratic convergence, which means the Netwon estimate will double in accuracy on each iteration.
