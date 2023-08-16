@@ -350,11 +350,11 @@ section. For now, note we can achieve extremely precise convergence due
 to the convexity of the curve we move along.
 
 \ref{revert} For safety, later versions choose to revert if the 255
-iterations are exhausted before converging. Note that typically
-conditions 4-6 iterations are expected, with a handful more under
-extreme imbalances. Stableswap math has proven capable in both numerical
-and live testing of handling imbalances that arise in practice with
-significantly less two dozen iterations.
+iterations are exhausted before converging. Note that typically 4-6
+iterations are expected, with a handful more under extreme imbalances.
+Stableswap math has proven capable in both numerical and live tests of
+handling imbalances that arise in practice with less than two dozen
+iterations.
 
 \hypertarget{rate-of-convergence}{%
 \subsubsection{Rate of convergence}\label{rate-of-convergence}}
@@ -458,7 +458,7 @@ of Newton's method.
 The stopping criterion used in current stableswap conditions is to check
 that the current iterate and previous iterate differs by at most 1. This
 does not in fact block infinite cycles. In practice however, such
-infinite cycles do not appear to happen under very imbalanced
+infinite cycles do not appear to happen even under very imbalanced
 conditions. Nonetheless the ``bounce'' criterion may be preferred as it
 can evidently handle a much greater range of imbalance.
 

@@ -180,7 +180,7 @@ Note the careful formulation to avoid loss of precision by integer division.  Th
 
 \ref{convergence} Convergence is gone into more detail in the next section.  For now, note we can achieve extremely precise convergence due to the convexity of the curve we move along.
 
-\ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.  Note that typically conditions 4-6 iterations are expected, with a handful more under extreme imbalances.  Stableswap math has proven capable in both numerical and live testing of handling imbalances that arise in practice with significantly less two dozen iterations.
+\ref{revert} For safety, later versions choose to revert if the 255 iterations are exhausted before converging.  Note that typically 4-6 iterations are expected, with a handful more under extreme imbalances.  Stableswap math has proven capable in both numerical and live tests of handling imbalances that arise in practice with less than two dozen iterations.
 
 ### Rate of convergence
 Convergence follows from convexity of $f$.  However we need much better than that, we need to reduce the distance to the solution by half each time, otherwise 255 iterations is not sufficient.  Also, in practice, exceeding more than half a dozen iterations is not sufficiently gas efficient enough to be competitive.  We will in fact demonstrate quadratic convergence, which means the Netwon estimate will double in accuracy on each iteration.
@@ -241,7 +241,7 @@ While in theory, the Newton iterates should converge for the stableswap curve, t
 
 One very simple way ot stopping such infinite cycles is to check if the iterate is larger than the previous iterate.  If so, we can expect that iteration has "bounced" due to the integer truncation and use the previous iterate as our return value.  This is in fact a standard way to handle integer arithmetical issues in such monotonically converging uses of Newton's method.
 
-The stopping criterion used in current stableswap conditions is to check that the current iterate and previous iterate differs by at most 1.  This does not in fact block infinite cycles.  In practice however, such infinite cycles do not appear to happen under very imbalanced conditions.  Nonetheless the "bounce" criterion may be preferred as it can evidently handle a much greater range of imbalance.
+The stopping criterion used in current stableswap conditions is to check that the current iterate and previous iterate differs by at most 1.  This does not in fact block infinite cycles.  In practice however, such infinite cycles do not appear to happen even under very imbalanced conditions.  Nonetheless the "bounce" criterion may be preferred as it can evidently handle a much greater range of imbalance.
 
 
 
